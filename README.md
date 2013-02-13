@@ -19,8 +19,12 @@ You can find out more on how to install Composer, configure autoloading, and oth
 Folder Descriptions
 -----------------------
 
-helpspot
+####helpspot
 - One script that will access the [HelpSpot](http://www.helpspot.com/) [API](http://www.helpspot.com/helpdesk/index.php?pg=kb.book&id=6) generate 4 different charts
 - Includes a copy of the HelpSpot [API Implementation](http://www.helpspot.com/helpdesk/index.php?pg=kb.page&id=307) for PHP v1.1
 - Known to work against HelpSpot version 3.1.6
 - Example [Screenshots](http://imgur.com/a/zMWxo)
+
+####weather
+
+####aws-cloudwatch      
