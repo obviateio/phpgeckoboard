@@ -6,6 +6,7 @@
 * By: Jon Davis -- http://snowulf.com
 * Last Updated: 2013-02-13
 * License: CC-BY-3.0 -- http://creativecommons.org/licenses/by/3.0/us/
+* More details at: http://snowulf.com/2013/02/13/using-geckoboard-with-helpspot/
 *******/
 
 // Required tools and things
