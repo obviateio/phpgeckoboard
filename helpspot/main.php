@@ -22,13 +22,50 @@ $GLOBALS['hs-user'] = 'admin@company.com'; // Your HelpSpot Username
 $GLOBALS['hs-pass'] = 'XXXpasswordXXX'; // Your HelpSpot Password
 // Remember to update all cases of "WIDGET-KEY-HERE"
 
+echo 'Setting up connection...<br/>';
 
 // Setup a connection
 $hsapi = new HelpSpotAPI(array(
-				"helpSpotApiURL" => $GLOBALS['hs']."api/index.php",
+				'helpSpotApiURL' => $GLOBALS['hs']."api/index.php",
 				'username' => $GLOBALS['hs-user'],
 				'password' => $GLOBALS['hs-pass'] ));
 
+
+/**** New Request Count ****/
+$item1 = array();
+
+	$result1 = $hsapi->privateRequestSearch(array(
+					'relativedate' => 'past_7',
+					));
+	$week1 = count($result1['requests']['request']);				
+	$item1[] = array('value' => $week1, 'text' => "This week");
+
+$item2 = array();
+
+	$result2 = $hsapi->privateRequestSearch(array(
+					'relativedate' => 'past_14',
+					));
+	
+	$week2 = count($result2['requests']['request']);
+	$lastweek = $week2 - $week1;
+	
+	$item2[] = array('value' => $lastweek, 'text' => "Last week");
+
+	$item = array_merge($item1, $item2);
+
+// Format data into Geckoboard JSON
+$newreq = array(
+	'api_key'=>$GLOBALS['key'],
+	'data'=>array(
+		'absolute' => 'true',
+		'type'=>'reverse',
+		'item'=>$item
+	)
+);
+
+// Send data to Geckoboard
+sendIt($newreq, 'WIDGET-KEY-HERE');
+echo 'New Requests Done...<br/>';
 
 
 /**** PIE CHART ****/
@@ -62,9 +99,9 @@ $item = array();
 foreach($people as $person => $val){
 	// generates a static color code for each user. "random" but will never change
 	$color = preg_replace("/[^A-F0-9]/i", '', strtoupper(sha1($person)));
-	$color = substr($color,2,4);
-	$color = "FF".$color;
-	$item[] = array('value'=>$val,'label'=>$person.' - '.$val,'colour'=>$color);
+	$color = substr($color,5,5);
+	$color = $color.'4';
+	$item[] = array('value'=>$val,'label'=>$person.' - '.$val,'colour'=>'999999,729bd9,83d17a,e4636a');
 }
 
 $pie = array(
@@ -76,7 +113,99 @@ $pie = array(
 
 // Push to Geckoboard API
 sendIt($pie, 'WIDGET-KEY-HERE');
+echo 'Pie Done...<br/>';
 
+/**** Billable Hours 7 Days ****
+*
+*
+*
+*/
+$timetrack = $hsapi->privateTimetrackerSearch(array(
+				'start_time' => time()-(60*60*24*7),
+				));			
+$outp = 0;
+foreach ($timetrack as $event) {
+  	foreach ($event as $keyid=>$timeid) {
+		foreach ($timeid as $arkey=>$arvals) {
+				$outp = $outp + $arvals['iSeconds'];
+		}
+    }
+}
+
+$timetrack2 = $hsapi->privateTimetrackerSearch(array(
+				'start_time' => time()-(60*60*24*14),
+				));			
+$outp2 = 0;
+foreach ($timetrack2 as $event2) {
+  	foreach ($event2 as $keyid2=>$timeid2) {
+		foreach ($timeid2 as $arkey2=>$arvals2) {
+				$outp2 = $outp2 + $arvals2['iSeconds'];
+		}
+    }
+}
+
+
+$itema[] = array('value' => round(($outp/60)/60,2), 'text' => "This week");
+$itemb[] = array('value' => round(($outp2/60)/60,2), 'text' => "Last week");
+
+$item = array_merge($itema, $itemb);
+// Format data into Geckoboard JSON
+$billable = array(
+	'api_key'=>$GLOBALS['key'],
+	'data'=>array(
+		'item'=>$item
+	)
+);
+
+// Send data to Geckoboard
+sendIt($billable, 'WIDGET-KEY-HERE');
+echo 'Billable Hours 7 Done...<br/>';
+
+/**** Billable Hours 30 Days ****
+*
+*
+*
+*/
+$timetrack4 = $hsapi->privateTimetrackerSearch(array(
+				'start_time' => time()-(60*60*24*30),
+				));			
+$outp4 = 0;
+foreach ($timetrack4 as $event4) {
+  	foreach ($event4 as $keyid4=>$timeid4) {
+		foreach ($timeid4 as $arkey4=>$arvals4) {
+				$outp4 = $outp4 + $arvals4['iSeconds'];
+		}
+    }
+}
+
+$timetrack5 = $hsapi->privateTimetrackerSearch(array(
+				'start_time' => time()-(60*60*24*60),
+				));			
+$outp5 = 0;
+foreach ($timetrack5 as $event5) {
+  	foreach ($event5 as $keyid5=>$timeid5) {
+		foreach ($timeid5 as $arkey5=>$arvals5) {
+				$outp5 = $outp5 + $arvals5['iSeconds'];
+		}
+    }
+}
+
+
+$item4[] = array('value' => round(($outp4/60)/60,2), 'text' => "This week");
+$item5[] = array('value' => round(($outp5/60)/60,2), 'text' => "Last week");
+
+$item = array_merge($item4, $item5);
+// Format data into Geckoboard JSON
+$billable = array(
+	'api_key'=>$GLOBALS['key'],
+	'data'=>array(
+		'item'=>$item
+	)
+);
+
+// Send data to Geckoboard
+sendIt($billable, 'WIDGET-KEY-HERE');
+echo 'Billable Hours 30 Done...<br/>';
 
 
 /**** FUNNEL CHART ****/
@@ -87,7 +216,7 @@ sendIt($pie, 'WIDGET-KEY-HERE');
 */
 
 // Define what relative times we want to check, and what they should be called
-$item = array();
+$itemfun = array();
 $doIt = array(
 	"today"=>"Opened Today",
 	"yesterday"=>"Opened Yesterday",
@@ -103,7 +232,7 @@ foreach($doIt as $date => $val){
 					'fOpen' => 1,
 					'relativedate' => $date,
 					));
-	$item[] = array('value' => count($result['requests']['request']), 'label' => $val);
+	$itemfun[] = array('value' => count($result['requests']['request']), 'label' => "$val");
 }
 
 // Format data into Geckoboard JSON
@@ -111,13 +240,15 @@ $funnel = array(
 	'api_key'=>$GLOBALS['key'],
 	'data'=>array(
 		'type'=>'reverse',
-		'item'=>$item
+		'percentage'=> 'hide',
+		'item'=>$itemfun
 	)
 );
 
 // Send data to Geckoboard
 sendIt($funnel, 'WIDGET-KEY-HERE');
 
+echo 'Funnel Done...<br/>';
 
 /**** LINE CHART OPEN ****/
 /*
@@ -177,6 +308,7 @@ $line = array(
 
 // Send data to Geckboard
 sendIt($line, 'WIDGET-KEY-HERE');
+echo 'Line Open Done...<br/>';
 
 
 /**** LINE CHART CLOSED ****/
@@ -238,6 +370,7 @@ $line2 = array(
 
 // Send it to Geckboard
 sendIt($line2, 'WIDGET-KEY-HERE');
+echo 'Line Done Done...<br/>';
 
 function sendIt($array, $id){
 	//Generate a new Gruzzle request, JSON encode our arrays, send data
@@ -245,3 +378,4 @@ function sendIt($array, $id){
 	$request = $client->post($GLOBALS['base'].$id, null, json_encode($array))->send();
 }
 
+echo 'Done!';
